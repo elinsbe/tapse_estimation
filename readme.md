@@ -36,14 +36,33 @@ The model is trained to reproduce heatmaps containing a "gaussian" centered on t
 git clone https://github.com/MatteoMissana/tapse_estimation
 cd tapse_estimation
 . setup.sh
-``
+```
 
 Then refer to [`./twod/README.md`](./twod/README.md) for pipeline-specific instructions.
 
 ### .env file
-To start, you should add a `.env` file. Here you should add
+To start, you should add an `.env` file. 
+
+The 2D training data is converted from annotated H5 files into three compressed
+NPZ files: `train.npz`, `val.npz`, and `test.npz`.
+
+Configure the paths in `.env`:
+
+```env
+DATASET_PATH="path to directory with all subdirectories with .h5 files"
+CONVERTED_DATASET_PATH="path where you want to store the converted datasets"
+DIVISION_TXT_PATH="path to the directory that defines what is training-, validation- and test-data"
 ```
-DATASET_PATH=<path to directory with all subdirectories with .h5 files>
+
+Regarding the `division.txt`, the file should follow this structure: 
+```txt
+Validation:
+<path_to_h5_file_from_the_.env_DATASET_PATH-file>
+Test:
+<path_to_h5_file_from_the_.env_DATASET_PATH-file>
+Training:
+<path_to_h5_file_from_the_.env_DATASET_PATH-file>
+```
 
 ## Formatting
 

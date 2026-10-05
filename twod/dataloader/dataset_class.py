@@ -42,61 +42,78 @@ class KeypointDataset(Dataset):
             transform (callable, optional): Image transformations.
             filter (bool, optional): If True, removes images with keypoints (0,0,0,0).
         """
-        path = os.getenv("DATASET_PATH")
-        total_files = 0
-        target_path = Path(path)
-        all_images = []
-        all_keypoints = []
-        skipped_files = []
+        source_path = Path(images) if isinstance(images, (str, os.PathLike)) else None
 
-        for root, _, files in os.walk(target_path):
-            for filename in files:
-                if filename.endswith(".h5"):
-                    total_files += 1
-                    filepath = Path(root) / filename
+        if source_path is not None and source_path.suffix == ".npz":
+            with np.load(source_path) as data:
+                required = {"images", "keypoints"}
+                missing = required - set(data.files)
+                if missing:
+                    raise ValueError(
+                        f"{source_path} is missing required arrays: {sorted(missing)}"
+                    )
+                images = data["images"]
+                keypoints = data["keypoints"]
+        elif source_path is not None or images is None:
+            target_path = source_path or Path(os.getenv("DATASET_PATH", ""))
+            if not target_path.is_dir():
+                raise FileNotFoundError(
+                    f"Dataset directory does not exist: {target_path}"
+                )
 
-                    with h5py.File(filepath, "r") as f:
-                        required = {"frames", "annotations"}
+            total_files = 0
+            all_images = []
+            all_keypoints = []
+            skipped_files = []
 
-                        if not required.issubset(f.keys()):
-                            missing = required - set(f.keys())
-                            # Add incase some files were to miss some annotations
-                            print(
-                                f"SKIPPING: {filepath}\n"
-                                f"  Missing: {sorted(missing)}\n"
-                                f"  Available: {list(f.keys())}"
+            for root, _, files in os.walk(target_path):
+                for filename in files:
+                    if filename.endswith(".h5"):
+                        total_files += 1
+                        filepath = Path(root) / filename
+
+                        with h5py.File(filepath, "r") as f:
+                            required = {"frames", "annotations"}
+
+                            if not required.issubset(f.keys()):
+                                missing = required - set(f.keys())
+                                print(
+                                    f"SKIPPING: {filepath}\n"
+                                    f"  Missing: {sorted(missing)}\n"
+                                    f"  Available: {list(f.keys())}"
+                                )
+
+                                skipped_files.append((filepath, missing))
+                                continue
+                            frames = f["frames"][:]
+                            annotations = f["annotations"][:]
+
+                            if (
+                                frames.ndim == 3
+                                and frames.shape[0] != annotations.shape[0]
+                            ):
+                                frames = frames.transpose(2, 0, 1)
+
+                            frames, annotations = resize_or_crop_image_np(
+                                frames,
+                                annotations,
+                                target_size=(256, 256),
                             )
 
-                            skipped_files.append((filepath, missing))
-                            continue
-                        frames = f["frames"][:]
-                        annotations = f["annotations"][:]
+                            all_images.append(frames)
+                            all_keypoints.append(annotations)
 
-                        if frames.ndim == 3 and frames.shape[0] != annotations.shape[0]:
-                            frames = frames.transpose(2, 0, 1)
+            print(f"Found {total_files} .h5 files in path.")
+            print(f"Loaded {len(all_images)} .h5 files.")
+            print(f"Skipped {len(skipped_files)} .h5 files.")
 
-                        print("Frames before preprocessing:", frames.shape)
-                        print("Annotations:", annotations.shape)
+            if not all_images:
+                raise RuntimeError("No valid .h5 files were found.")
 
-                        # It is expected that the images are 256,256, so they must be reshapes/cropped
-                        frames, annotations = resize_or_crop_image_np(
-                            frames,
-                            annotations,
-                            target_size=(256, 256),
-                        )
-
-                        all_images.append(frames)
-                        all_keypoints.append(annotations)
-
-        print(f"Found {total_files} .h5 files in path.")
-        print(f"Loaded {len(all_images)} .h5 files.")
-        print(f"Skipped {len(skipped_files)} .h5 files.")
-
-        if not all_images:
-            raise RuntimeError("No valid .h5 files were found.")
-
-        images = np.concatenate(all_images, axis=0)
-        keypoints = np.concatenate(all_keypoints, axis=0)
+            images = np.concatenate(all_images, axis=0)
+            keypoints = np.concatenate(all_keypoints, axis=0)
+        elif keypoints is None:
+            raise ValueError("keypoints must be provided when images is an array.")
 
         print(f"Total images: {len(images)}")
         print(f"Images shape: {images.shape}")

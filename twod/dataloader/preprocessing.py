@@ -127,29 +127,29 @@ def preprocess_images(images_array, model_type="EchoCoder", device="cpu"):
     model_type: Specifica il modello per la corretta formattazione dell'input
     """
 
-    # Assicuriamoci che il tipo di dato sia float32 e normalizziamo se necessario
+    # Let's make sure the data type is float32 and normalize it if necessary
     if images_array.max() > 1:
         images_array = images_array.astype(np.float32) / 255.0
 
-    # Modifichiamo il formato in base al modello
+    # Let's adjust the format based on the template
     if model_type == "U-Net":
-        # Aggiungiamo le dimensioni richieste per PyTorch: (N, 1, 256, 256)
+        # Let's add the dimensions required for PyTorch: (N, 1, 256, 256)
         images_tensor = (
             torch.tensor(images_array).unsqueeze(1).to(device)
-        )  # Shape diventa (N, 1, 256, 256)
-        # images_tensor = images_tensor.repeat(1, 3, 1, 1)  # Shape diventa (N, 3, 256, 256)
+        )   # Shape becomes (N, 1, 256, 256)
+        # images_tensor = images_tensor.repeat(1, 3, 1, 1)  # Shape becomes (N, 3, 256, 256)
     elif model_type == "improved_unet":
         images_tensor = torch.tensor(images_array)
     elif model_type == "monai_U-Net":
         images_tensor = (
             torch.tensor(images_array).unsqueeze(1).to(device)
-        )  # Shape diventa (N, 1, 256, 256)
+        )   # Shape becomes (1, 1, 256, 256)
     elif model_type == "swinunetr":
         images_tensor = torch.tensor(images_array).unsqueeze(1).to(device)
     elif "ResNet" or "resnext" in model_type:
         images_tensor = (
             torch.tensor(images_array).unsqueeze(1).to(device)
-        )  # Shape diventa (N, 1, 256, 256)
+        )   # Shape becomes (N, 1, 256, 256)
     return images_tensor
 
 
