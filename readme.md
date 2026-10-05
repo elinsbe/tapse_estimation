@@ -24,7 +24,7 @@ Indices are derived by tracking three anatomical landmarks across TEE frames:
 ### `twod` ✅
 Individual 2D TEE frames are fed into a model that predicts and tracks the three target landmarks per frame, from which clinical indices are subsequently calculated.
 
-For a detailed explanation of how this pipeline works, see [`./twod/README.md`](./twod/README.md).
+For a detailed explanation of how this pipeline works, see [`/twod/readme.md`](/twod/readme.md). 
 
 ### `2D+T` ✅ (Tracking, prototype)
 In this pipeline, a 3d model is fed with sequences of N frames, and it tracks the landmarks in the whole time window at the same time. 
@@ -38,7 +38,7 @@ cd tapse_estimation
 . setup.sh
 ```
 
-Then refer to [`./twod/README.md`](./twod/README.md) for pipeline-specific instructions.
+Then refer to [`/twod/readme.md`](/twod/readme.md) for pipeline-specific instructions.
 
 ### .env file
 To start, you should add an `.env` file. 
