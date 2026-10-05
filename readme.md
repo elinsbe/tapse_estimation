@@ -54,6 +54,16 @@ CONVERTED_DATASET_PATH="path where you want to store the converted datasets"
 DIVISION_TXT_PATH="path to the directory that defines what is training-, validation- and test-data"
 ```
 
+Regarding the `division.txt`, the file should follow this structure: 
+```txt
+Validation:
+<path_to_h5_file_from_the_.env_DATASET_PATH-file>
+Test:
+<path_to_h5_file_from_the_.env_DATASET_PATH-file>
+Training:
+<path_to_h5_file_from_the_.env_DATASET_PATH-file>
+```
+
 ## Formatting
 
 After running the [`./requirements.txt-file`](./requirements.txt):
