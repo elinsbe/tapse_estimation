@@ -154,7 +154,6 @@ class KeypointDataset(Dataset):
         img = self.images[idx]
         if img.max() > 1:
             img = img.astype(np.float32) / 255.0
-        img = np.expand_dims(img, axis=0)
 
         img = preprocess_images(img, model_type=self.model_type, device=self.device)
 
