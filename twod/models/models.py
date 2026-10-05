@@ -91,7 +91,8 @@ class EncoderDecoder(nn.Module):
     def forward(self, x):
         if self.three_dim:
             x = self.conv1(x)
-        x = x.view(x.shape[0], x.shape[1], x.shape[3], x.shape[4])
+            x = x.squeeze(2)
+
         x = self.resnet(x)
 
         x = F.relu(self.bn1(self.upconv1(x)))
@@ -101,7 +102,6 @@ class EncoderDecoder(nn.Module):
         x = F.relu(self.bn5(self.upconv5(x)))
 
         x = self.outconv(x)
-
         return x
 
 
@@ -135,9 +135,6 @@ class ResNet50Regression(nn.Module):
         Input:  tensor of shape (B, 1, 256, 256) = grayscale image batch
         Output: tensor of shape (B, 3, 2) = 3 (x, y) landmarks per image
         """
-        x = x.view(
-            x.shape[0], x.shape[2], x.shape[3], x.shape[4]
-        )  # Reshape to (B, 1, 256, 256)
         x = self.resnet(x)  # Shape: (B, 6)
         x = x.view(-1, 3, 2)  # Reshape to (B, 3, 2)
         x = x * 255  # Scale to original image size
@@ -172,10 +169,7 @@ class ResNeXt50Regression(nn.Module):
         Input:  tensor of shape (B, 1, 256, 256)
         Output: tensor of shape (B, 3, 2)
         """
-        x = x.view(
-            x.shape[0], x.shape[2], x.shape[3], x.shape[4]
-        )  # Reshape to (B, 1, 256, 256)
-        x = self.resnext(x)  # Shape: (B, 6)
+        x = self.resnext(x)
         x = x.view(-1, 3, 2)  # Reshape to (B, 3, 2)
         x = x * 255  # Scale to original image size
         return x
@@ -211,7 +205,6 @@ class ResNet34Regression(nn.Module):
         Returns:
             Tensor of shape (B, 3, 2): predicted (x, y) coordinates for 3 landmarks
         """
-        x = x.view(x.shape[0], x.shape[2], x.shape[3], x.shape[4])
         x = self.resnet(x)  # Output shape: (B, 6)
         x = x.view(-1, 3, 2)  # Reshape to (B, 3, 2)
         x = x * 255  # Optionally scale to image resolution
@@ -248,9 +241,6 @@ class ResNet18Regression(nn.Module):
         Returns:
             Tensor of shape (B, 3, 2) representing 3 landmark coordinates
         """
-        x = x.view(
-            x.shape[0], x.shape[2], x.shape[3], x.shape[4]
-        )  # Reshape to (B, 1, 256, 256)
         x = self.resnet(x)  # Output shape: (B, 6)
         x = x.view(-1, 3, 2)  # Reshape to (B, 3, 2)
         x = (
@@ -331,7 +321,6 @@ class SwinUNETR(nn.Module):
         )
 
     def forward(self, x):
-        x = x.view(x.shape[0], x.shape[2], x.shape[3], x.shape[4])
         return self.net(x)
 
 
@@ -349,7 +338,6 @@ class UNETR(nn.Module):
         )
 
     def forward(self, x):
-        x = x.view(x.shape[0], x.shape[2], x.shape[3], x.shape[4])
         return self.net(x)
 
 
@@ -384,9 +372,12 @@ class Unet(nn.Module):
         )
 
     def forward(self, x):
-        x = x.view(x.shape[0], x.shape[2], x.shape[3], x.shape[4])
-        return self.net(x)
+        if x.ndim != 4:
+            raise ValueError(
+                f"Expected input shape (B, C, H, W), got {tuple(x.shape)}"
+            )
 
+        return self.net(x)
 
 class ViTAutoencoder(nn.Module):
     def __init__(self):
@@ -403,7 +394,6 @@ class ViTAutoencoder(nn.Module):
         )
 
     def forward(self, x):
-        x = x.view(x.shape[0], x.shape[2], x.shape[3], x.shape[4])
         x = self.net(x)
         return x[0]
 
@@ -450,7 +440,6 @@ class EncoderDecoderMixFormer(nn.Module):
         )
 
     def forward(self, x):
-        x = x.view(x.shape[0], x.shape[1], x.shape[3], x.shape[4])
         x = self.resnet(x)
         x = self.conv(x)
         x = self.mixformer_head(x)

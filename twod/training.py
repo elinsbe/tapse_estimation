@@ -329,12 +329,12 @@ class Tester:
         criterion2 (callable): Second loss function.
     """
 
-    def _init_(self, criterion1, criterion2, thresh=0.9):
+    def __init__(self, criterion1, criterion2, thresh=0.9):
         self.criterion1 = criterion1
         self.criterion2 = criterion2
         self.thresh = thresh
 
-    def _call_(self, model, test_loader, device):
+    def __call__(self, model, test_loader, device):
         """
         Runs evaluation on the validation set and computes two metrics.
 

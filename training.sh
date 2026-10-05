@@ -1,6 +1,6 @@
 #!/bin/sh
 #SBATCH --job-name=training_run
-#SBATCH --time=0-00:15:00         # format: D-HH:MM:SS
+#SBATCH --time=0-01:10:00         # format: D-HH:MM:SS
 
 #SBATCH --partition=GPUQ          # Asking for a GPU
 #SBATCH --gres=gpu:1             # Setting the number of GPUs to 1
@@ -25,4 +25,8 @@ module purge
 module load Anaconda3/2025.06-1
 module load Python/3.12.3-GCCcore-13.3.0
 source .venv/bin/activate
-python twod/training.py
+python twod/training.py \
+    --model ResNet50 \
+    --epochs 2 \
+    --from_scratch \
+    --save_model_path twod/runs/resnet_run

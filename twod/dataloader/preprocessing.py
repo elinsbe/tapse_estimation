@@ -123,35 +123,38 @@ def create_numpy_dataset(
 
 def preprocess_images(images_array, model_type="EchoCoder", device="cpu"):
     """
-    images_array: NumPy array con shape (N, 256, 256), valori tra 0-255 o normalizzati 0-1
-    model_type: Specifica il modello per la corretta formattazione dell'input
-    """
+    Convert grayscale images to float tensors with a channel dimension.
 
-    # Let's make sure the data type is float32 and normalize it if necessary
+    Accepted input shapes:
+        (H, W)       -> one image
+        (N, H, W)    -> batch of images
+
+    Output shapes:
+        (1, H, W)    -> one image
+        (N, 1, H, W) -> batch of images
+    """
+    images_array = np.asarray(images_array)
+
     if images_array.max() > 1:
         images_array = images_array.astype(np.float32) / 255.0
+    else:
+        images_array = images_array.astype(np.float32)
 
-    # Let's adjust the format based on the template
-    if model_type == "U-Net":
-        # Let's add the dimensions required for PyTorch: (N, 1, 256, 256)
-        images_tensor = (
-            torch.tensor(images_array).unsqueeze(1).to(device)
-        )   # Shape becomes (N, 1, 256, 256)
-        # images_tensor = images_tensor.repeat(1, 3, 1, 1)  # Shape becomes (N, 3, 256, 256)
-    elif model_type == "improved_unet":
-        images_tensor = torch.tensor(images_array)
-    elif model_type == "monai_U-Net":
-        images_tensor = (
-            torch.tensor(images_array).unsqueeze(1).to(device)
-        )   # Shape becomes (1, 1, 256, 256)
-    elif model_type == "swinunetr":
-        images_tensor = torch.tensor(images_array).unsqueeze(1).to(device)
-    elif "ResNet" or "resnext" in model_type:
-        images_tensor = (
-            torch.tensor(images_array).unsqueeze(1).to(device)
-        )   # Shape becomes (N, 1, 256, 256)
-    return images_tensor
+    images_tensor = torch.as_tensor(images_array)
 
+    if images_tensor.ndim == 2:
+        # (H, W) -> (1, H, W)
+        images_tensor = images_tensor.unsqueeze(0)
+    elif images_tensor.ndim == 3:
+        # (N, H, W) -> (N, 1, H, W)
+        images_tensor = images_tensor.unsqueeze(1)
+    else:
+        raise ValueError(
+            f"Expected image shape (H, W) or (N, H, W), "
+            f"got {tuple(images_tensor.shape)}"
+        )
+
+    return images_tensor.to(device)
 
 """
 Imported from https://github.com/mailys-hau/echovox
