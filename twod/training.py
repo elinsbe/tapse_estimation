@@ -64,13 +64,13 @@ def parse_args():
     parser.add_argument(
         "--train_data",
         type=str,
-        default=r"d:\mmissana\data\RV_PATIENTS\dataset_after_review\train.npz",
+        default="data/2D_dataset_divided/train.npz",
         help="Path to the training dataset",
     )
     parser.add_argument(
         "--val_data",
         type=str,
-        default=r"d:\mmissana\data\RV_PATIENTS\dataset_after_review\val.npz",
+        default="data/2D_dataset_divided/val.npz",
         help="Path to the validation dataset",
     )
     parser.add_argument(
@@ -514,7 +514,7 @@ def main():
 
     # Run inference on test set
     model.eval()
-    test_path = r"d:\mmissana\data\RV_PATIENTS\dataset_after_review\test.npz"
+    test_path = "data/2D_dataset_divided/test.npz"
     test_dataset = KeypointDataset(test_path, filter=True, model_type=args.model)
     test_loader = DataLoader(
         test_dataset, batch_size=args.batch_size, shuffle=False, generator=g
