@@ -4,6 +4,7 @@ import torch
 import numpy as np
 import pandas as pd
 import argparse
+from dotenv import load_dotenv
 
 from twod.dataloader.preprocessing import (
     preprocess_images,
@@ -21,6 +22,8 @@ from twod.pipeline_testing.auto_idx_calculation.indices_calculation import (
 from twod.postprocessing.kalman_filter import KalmanFilter
 from twod.postprocessing.pan_tompkins import pan_tompkins_detector
 from twod.utils.plot import visualize_image, save_image
+
+load_dotenv()
 
 """
 This script processes cardiac ultrasound sequences stored in HDF5 files to estimate 
@@ -318,7 +321,10 @@ def main():
     )
 
     parser.add_argument(
-        "--h5_dir", type=str, required=True, help="Directory containing the HDF5 files"
+        "--h5_dir",
+        type=str,
+        default=os.getenv("DATASET_PATH"),
+        help="Directory containing the HDF5 files",
     )
     parser.add_argument(
         "--excel_path",
